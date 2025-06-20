@@ -1,15 +1,13 @@
 'use client'
 
-import Sidebar from '@/components/Sidebar'
 import ChatBox from '@/components/Chatbox'
+import Sidebar from '@/components/Sidebar'
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <main className="min-h-screen h-screen flex bg-gray-50">
+    <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <ChatBox />
-      </div>
-    </main>
+      <ChatBox />
+    </div>
   )
 }
