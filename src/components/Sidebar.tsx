@@ -5,15 +5,20 @@ import { SquarePen, Menu, Brain } from 'lucide-react'
 import { useChatContext } from '@/context/ContextProvider'
 
 export default function Sidebar() {
-  const { newChat, previousPrompt, onSent } = useChatContext()
+  const { newChat, previousPrompt, onSent, setInput } = useChatContext()
   const [collapsed, setCollapsed] = useState(false)
+
+  const handlePromptClick = async (prompt: string) => {
+    setInput(prompt)                  // 🟦 set input value for clarity
+    await onSent(prompt, false)      // 🟦 no typing effect, no new history
+  }
 
   return (
     <aside
       className={`h-screen bg-[#e2e2e2] dark:bg-[#1a1919] border-r dark:border-gray-800 p-4 flex flex-col justify-between transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}
     >
       <div>
-        {/* Logo and Collapse Toggle */}
+        {/* 🔵 Logo & Collapse */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Brain size={collapsed ? 24 : 32} className="text-blue-600" />
@@ -29,7 +34,7 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* New Chat Button */}
+        {/* 🟦 New Chat */}
         <button
           onClick={newChat}
           className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 px-4 py-2 rounded-lg transition mb-4`}
@@ -40,7 +45,7 @@ export default function Sidebar() {
           </div>
         </button>
 
-        {/* Previous Chats */}
+        {/* 🟢 Chat History */}
         {!collapsed && (
           <ul className="space-y-2">
             {previousPrompt.length === 0 ? (
@@ -49,7 +54,7 @@ export default function Sidebar() {
               previousPrompt.map((prompt, index) => (
                 <li
                   key={index}
-                  onClick={() => onSent(prompt, false)} // showTyping = false
+                  onClick={() => handlePromptClick(prompt)}
                   className="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
                 >
                   {prompt.length > 30 ? prompt.slice(0, 30) + '...' : prompt}
