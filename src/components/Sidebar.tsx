@@ -8,10 +8,12 @@ export default function Sidebar() {
   const { newChat, previousPrompt, onSent, setInput } = useChatContext()
   const [collapsed, setCollapsed] = useState(false)
 
+  // 🟦 prevent adding this to chat history
   const handlePromptClick = async (prompt: string) => {
-    setInput(prompt)                  // 🟦 set input value for clarity
-    await onSent(prompt, false)      // 🟦 no typing effect, no new history
-  }
+  setInput(prompt)
+  await onSent(prompt, false, undefined, true) // ✅ prevent re-adding prompt to history
+}
+
 
   return (
     <aside

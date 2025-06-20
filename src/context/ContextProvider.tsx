@@ -22,7 +22,8 @@ type ContextType = {
   onSent: (
     prompt?: string,
     showTyping?: boolean,
-    setTypingIntervalId?: (id: NodeJS.Timeout | null) => void
+    setTypingIntervalId?: (id: NodeJS.Timeout | null) => void,
+    isRecall?: boolean
   ) => Promise<void>
   stopGenerating: () => void
 }
@@ -37,6 +38,7 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false)
   const [resultData, setResultData] = useState('')
   const [chatHistory, setChatHistory] = useState<Message[]>([])
+  const [isFirstPrompt, setIsFirstPrompt] = useState(true) // ✅ NEW STATE
   const stopRequestedRef = useRef(false)
 
   const stopGenerating = () => {
@@ -52,26 +54,33 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     setInput('')
     setRecentPrompt('')
     setPreviousPrompt([])
-    setChatHistory([]) // 🟡 reset chat history
+    setChatHistory([])
+    setIsFirstPrompt(true) // ✅ reset tracker
   }
 
   const onSent = async (
     prompt?: string,
     showTyping = true,
-    setTypingIntervalId?: (id: NodeJS.Timeout | null) => void
+    setTypingIntervalId?: (id: NodeJS.Timeout | null) => void,
+    isRecall = false
   ) => {
     stopRequestedRef.current = false
     setLoading(showTyping)
     setShowResult(true)
 
     const query = prompt ?? input
-    if (!prompt) setPreviousPrompt((prev) => [...prev, input])
+
+    // ✅ Only add new prompt to sidebar if it's not a recall AND is first in chat
+    if (!prompt && isFirstPrompt && !isRecall) {
+      setPreviousPrompt((prev) => [...prev, input])
+      setIsFirstPrompt(false)
+    }
+
     setRecentPrompt(query)
 
-    const fullHistory = [...chatHistory, { from: 'user', text: query }]
-    const response = await runChat(fullHistory) // ✅ use full history
+    const fullHistory: Message[] = [...chatHistory, { from: 'user', text: query }]
+    const response = await runChat(fullHistory)
 
-    // Update history
     setChatHistory((prev) => [...prev, { from: 'user', text: query }, { from: 'ai', text: response }])
 
     const responseArray = response.split('**')
@@ -114,6 +123,7 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     }, 75)
 
     if (setTypingIntervalId) setTypingIntervalId(intervalId)
+
     setInput('')
   }
 
