@@ -1,18 +1,28 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode, useRef } from 'react'
+import { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react'
 import runChat from '../config/gemini'
+import { v4 as uuidv4 } from 'uuid'
+import { saveMessage } from '@/lib/supabase/chatService'
+import { getChatHistory } from '@/lib/supabase/chatService'
 
 type Message = {
   from: 'user' | 'ai'
   text: string
 }
 
+type ChatMeta = {
+  id: string
+  title: string
+}
+
 type ContextType = {
   input: string
   setInput: (input: string) => void
-  previousPrompt: string[]
-  setPreviousPrompt: (prompts: string[]) => void
+  // previousPrompt: string[]
+  // setPreviousPrompt: (prompts: string[]) => void
+  chatList: ChatMeta[]                         
+  setChatList: React.Dispatch<React.SetStateAction<ChatMeta[]>>
   recentPrompt: string
   setRecentPrompt: (prompt: string) => void
   resultData: string
@@ -33,13 +43,15 @@ export const Context = createContext<ContextType | undefined>(undefined)
 const ContextProvider = ({ children }: { children: ReactNode }) => {
   const [input, setInput] = useState('')
   const [recentPrompt, setRecentPrompt] = useState('')
-  const [previousPrompt, setPreviousPrompt] = useState<string[]>([])
+  // const [previousPrompt, setPreviousPrompt] = useState<string[]>([])
+  const [chatList, setChatList] = useState<ChatMeta[]>([])   // ✅ New
   const [showResult, setShowResult] = useState(false)
   const [loading, setLoading] = useState(false)
   const [resultData, setResultData] = useState('')
   const [chatHistory, setChatHistory] = useState<Message[]>([])
   const [isFirstPrompt, setIsFirstPrompt] = useState(true) // ✅ NEW STATE
   const stopRequestedRef = useRef(false)
+  const [chatId, setChatId] = useState<string>(uuidv4())
 
   const stopGenerating = () => {
     stopRequestedRef.current = true
@@ -47,16 +59,52 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const newChat = () => {
+    const newChatId = uuidv4()
+    setChatId(newChatId)
+    // ✅ Reset chat history and other states
     stopRequestedRef.current = false
     setLoading(false)
     setShowResult(false)
     setResultData('')
     setInput('')
     setRecentPrompt('')
-    setPreviousPrompt([])
+    // setPreviousPrompt([])
     setChatHistory([])
     setIsFirstPrompt(true) // ✅ reset tracker
   }
+
+  // ✅ Load chat history when component mounts
+  const loadChatHistory = async (chatId: string) => {
+    const messages = await getChatHistory(chatId)
+
+    type SupabaseMessage = { role: 'user' | 'ai'; content: string }
+    const formatted: Message[] = messages.map((msg: SupabaseMessage) => ({
+      from: msg.role,
+      text: msg.content
+    }))
+
+    setChatHistory(formatted)
+
+    // Rebuild UI content
+    const html = formatted
+      .map((msg) => {
+        if (msg.from === 'user') {
+          return `<div class="font-semibold text-right text-blue-600 my-2">${msg.text}</div>`
+        } else {
+          return `<div class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white my-2 rounded-lg p-3">${msg.text}</div>`
+        }
+      })
+      .join('')
+
+    setResultData(html)
+  }
+
+
+  useEffect(() => {
+    if (chatId) {
+      loadChatHistory(chatId)
+    }
+  }, [chatId])
 
   const onSent = async (
     prompt?: string,
@@ -72,7 +120,8 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
 
     // ✅ Only add new prompt to sidebar if it's not a recall AND is first in chat
     if (!prompt && isFirstPrompt && !isRecall) {
-      setPreviousPrompt((prev) => [...prev, input])
+      // setPreviousPrompt((prev) => [...prev, input])
+      setChatList((prev) => [...prev, { id: chatId, title: query.slice(0, 30) }])
       setIsFirstPrompt(false)
     }
 
@@ -82,6 +131,9 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     const response = await runChat(fullHistory)
 
     setChatHistory((prev) => [...prev, { from: 'user', text: query }, { from: 'ai', text: response }])
+
+    await saveMessage(chatId, 'user', query)
+    await saveMessage(chatId, 'ai', response)
 
     const responseArray = response.split('**')
     let newResponse = ''
@@ -130,8 +182,10 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   const value: ContextType = {
     input,
     setInput,
-    previousPrompt,
-    setPreviousPrompt,
+    // previousPrompt,
+    // setPreviousPrompt,
+    chatList,
+    setChatList,
     recentPrompt,
     setRecentPrompt,
     resultData,

@@ -1,19 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { SquarePen, Menu, Brain } from 'lucide-react'
+import { SquarePen, Menu, Brain, Trash2 } from 'lucide-react'
 import { useChatContext } from '@/context/ContextProvider'
+import { deleteChat } from '@/lib/supabase/chatService' // ✅ added
 
 export default function Sidebar() {
-  const { newChat, previousPrompt, onSent, setInput } = useChatContext()
+  const { newChat, chatList, onSent, setInput, setChatList } = useChatContext()
   const [collapsed, setCollapsed] = useState(false)
 
-  // 🟦 prevent adding this to chat history
-  const handlePromptClick = async (prompt: string) => {
-  setInput(prompt)
-  await onSent(prompt, false, undefined, true) // ✅ prevent re-adding prompt to history
-}
+  const handlePromptClick = async (chat: { id: string; title: string }) => {
+    setInput(chat.title)
+    await onSent(chat.title, false, undefined, true)
+  }
 
+  const handleDelete = async (id: string) => {
+    await deleteChat(id)
+    setChatList(prev => prev.filter(chat => chat.id !== id))
+  }
 
   return (
     <aside
@@ -50,16 +54,23 @@ export default function Sidebar() {
         {/* 🟢 Chat History */}
         {!collapsed && (
           <ul className="space-y-2">
-            {previousPrompt.length === 0 ? (
+            {chatList.length === 0 ? (
               <li className="text-sm text-gray-500">No previous chats</li>
             ) : (
-              previousPrompt.map((prompt, index) => (
-                <li
-                  key={index}
-                  onClick={() => handlePromptClick(prompt)}
-                  className="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-                >
-                  {prompt.length > 30 ? prompt.slice(0, 30) + '...' : prompt}
+              chatList.map((chat) => (
+                <li key={chat.id} className="relative group">
+                  <div
+                    onClick={() => handlePromptClick(chat)}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                  >
+                    {chat.title}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(chat.id)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-sm text-red-500"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </li>
               ))
             )}
@@ -67,7 +78,6 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Footer */}
       {!collapsed && (
         <div className="text-sm text-gray-500 mt-6">© 2025 AI Chatbot</div>
       )}
