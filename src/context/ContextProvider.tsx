@@ -1,10 +1,11 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react'
+import supabase from '@/lib/supabase/supabaseClient'
 import runChat from '../config/gemini'
 import { v4 as uuidv4 } from 'uuid'
 import { saveMessage } from '@/lib/supabase/chatService'
-import { getChatHistory } from '@/lib/supabase/chatService'
+import { getChatHistory, getAllChats } from '@/lib/supabase/chatService'
 
 type Message = {
   from: 'user' | 'ai'
@@ -21,7 +22,7 @@ type ContextType = {
   setInput: (input: string) => void
   // previousPrompt: string[]
   // setPreviousPrompt: (prompts: string[]) => void
-  chatList: ChatMeta[]                         
+  chatList: ChatMeta[]
   setChatList: React.Dispatch<React.SetStateAction<ChatMeta[]>>
   recentPrompt: string
   setRecentPrompt: (prompt: string) => void
@@ -51,7 +52,13 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   const [chatHistory, setChatHistory] = useState<Message[]>([])
   const [isFirstPrompt, setIsFirstPrompt] = useState(true) // ✅ NEW STATE
   const stopRequestedRef = useRef(false)
-  const [chatId, setChatId] = useState<string>(uuidv4())
+  const [chatId, setChatId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('chatId')
+      return stored || uuidv4()
+    }
+    return uuidv4()
+  })
 
   const stopGenerating = () => {
     stopRequestedRef.current = true
@@ -61,6 +68,7 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   const newChat = () => {
     const newChatId = uuidv4()
     setChatId(newChatId)
+    localStorage.setItem('chatId', newChatId)
     // ✅ Reset chat history and other states
     stopRequestedRef.current = false
     setLoading(false)
@@ -99,9 +107,31 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     setResultData(html)
   }
 
+  useEffect(() => {
+    const fetchChats = async () => {
+      const chats = await getAllChats()
+      setChatList(chats)
+    }
+
+    fetchChats()
+  }, [])
+
 
   useEffect(() => {
+    const testConnection = async () => {
+      const { data, error } = await supabase.from('messages').select('*').limit(1)
+
+      if (error) {
+        console.error('❌ Supabase connection failed:', error)
+      } else {
+        console.log('✅ Supabase connected. Sample data:', data)
+      }
+    }
+
+    testConnection()
+
     if (chatId) {
+      localStorage.setItem('chatId', chatId) // ✅ Ensures it's always saved
       loadChatHistory(chatId)
     }
   }, [chatId])
