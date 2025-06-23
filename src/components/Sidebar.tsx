@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { SquarePen, Menu, Brain, Trash2 } from 'lucide-react'
+import { SquarePen, Menu, Trash2 } from 'lucide-react'
 import { useChatContext } from '@/context/ContextProvider'
 import { deleteChat } from '@/lib/supabase/chatService' // ✅ added
+import Image from 'next/image'
+
 
 export default function Sidebar() {
   const { newChat, chatList, onSent, setInput, setChatList } = useChatContext()
@@ -20,27 +22,31 @@ export default function Sidebar() {
   }
 
   return (
-    <aside
-      className={`h-screen bg-[#e2e2e2] dark:bg-[#1a1919] border-r dark:border-gray-800 p-4 flex flex-col justify-between transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}
-    >
-      <div>
-        {/* 🔵 Logo & Collapse */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Brain size={collapsed ? 24 : 32} className="text-blue-600" />
-            {!collapsed && (
-              <h2 className="text-xl font-bold text-gray-700 dark:text-white">AI Chat</h2>
-            )}
-          </div>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-gray-600 dark:text-gray-300 hover:text-blue-500"
-          >
-            <Menu size={20} />
+    <aside className={`h-screen bg-[#e2e2e2] dark:bg-[#1a1919] border-r dark:border-gray-800 transition-all duration-300 flex flex-col ${collapsed ? 'w-20' : 'w-64'}`}>
+      {/* 🔵 Logo & Collapse */}
+      <div className="p-4 pb-2 flex items-center justify-between">
+        {!collapsed && (
+          <button onClick={newChat} className="cursor-pointer" title="Start New Chat">
+            <Image
+              src="/logo.png"
+              alt="Promptly Logo"
+              width={collapsed ? 40 : 100}
+              height={40}
+              className="object-contain"
+              priority
+            />
           </button>
-        </div>
+        )}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="text-gray-500 dark:text-gray-300 hover:text-blue-500"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
 
-        {/* 🟦 New Chat */}
+      {/* 🟦 New Chat Button */}
+      <div className="px-4">
         <button
           onClick={newChat}
           className={`w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 px-4 py-2 rounded-lg transition mb-4`}
@@ -50,24 +56,29 @@ export default function Sidebar() {
             {!collapsed && <span>New chat</span>}
           </div>
         </button>
+      </div>
 
-        {/* 🟢 Chat History */}
+      {/* 🟢 Scrollable Chat List */}
+      <div className="flex-1 overflow-y-auto px-4">
         {!collapsed && (
-          <ul className="space-y-2">
+          <ul className="space-y-1 pb-4">
             {chatList.length === 0 ? (
-              <li className="text-sm text-gray-500">No previous chats</li>
+              <li className="text-sm text-gray-500 px-2">No previous chats</li>
             ) : (
               chatList.map((chat) => (
                 <li key={chat.id} className="relative group">
                   <div
                     onClick={() => handlePromptClick(chat)}
-                    className="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                    className="px-3 py-2 rounded-md text-sm truncate cursor-pointer 
+                  bg-transparent text-gray-800 dark:text-gray-100 
+                  hover:bg-gray-200 dark:hover:bg-[#2a2a2a] transition-all"
                   >
                     {chat.title}
                   </div>
                   <button
                     onClick={() => handleDelete(chat.id)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-sm text-red-500"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 
+                  group-hover:opacity-100 text-red-500 transition-opacity"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -78,8 +89,11 @@ export default function Sidebar() {
         )}
       </div>
 
+      {/* Footer */}
       {!collapsed && (
-        <div className="text-sm text-gray-500 mt-6">© 2025 AI Chatbot</div>
+        <div className="text-sm text-gray-500 px-4 py-2 border-t border-gray-300 dark:border-gray-700">
+          © 2025 AI Chatbot
+        </div>
       )}
     </aside>
   )

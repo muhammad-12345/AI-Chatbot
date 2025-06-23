@@ -52,8 +52,8 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
 
   return (
     <div className={compact ? 'w-[350px] h-[500px] shadow-lg rounded-md overflow-hidden border border-gray-300' : 'w-full h-screen'}>
-      <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-screen'} bg-[#f3f3f3] dark:bg-[#212121]`}>
-        <div className="flex flex-col h-screen w-full bg-[#f3f3f3] dark:bg-[#212121]">
+      <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-screen'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
+        <div className="flex flex-col h-screen w-full bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900">
           <div className={`flex-1 overflow-y-auto px-4 py-6 ${isEmpty ? 'flex items-center justify-center' : ''}`}>
             <div className="w-full max-w-2xl mx-auto">
               {isEmpty ? (
@@ -78,8 +78,11 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
                   )}
                   <div
                     className="text-sm"
-                    dangerouslySetInnerHTML={{ __html: resultData }}
+                    dangerouslySetInnerHTML={{
+                      __html: `<div style="color: white; font-family: 'Poppins', sans-serif;">${resultData}</div>`,
+                    }}
                   />
+
                   <div ref={messagesEndRef} />
                 </div>
               )}

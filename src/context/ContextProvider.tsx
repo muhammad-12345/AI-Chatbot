@@ -177,8 +177,8 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
 
     const formattedResponse = newResponse.split('*').join('</br>')
 
-    const promptHtml = `<div class="font-semibold text-right text-blue-600 my-2">${query}</div>`
-    const responseStart = `<div class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white my-2 rounded-lg p-3">`
+    const promptHtml = `<div class="bg-[#343541] text-white font-semibold px-4 py-3 rounded-lg text-sm text-right max-w-xl ml-auto">${query}</div>`
+const responseStart = `<div class="text-white my-4 leading-relaxed">`
     const responseEnd = `</div>`
 
     if (!showTyping) {
