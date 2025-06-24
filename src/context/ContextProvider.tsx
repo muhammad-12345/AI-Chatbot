@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { saveMessage } from '@/lib/supabase/chatService'
 import { getChatHistory, getAllChats } from '@/lib/supabase/chatService'
 import { getClientIdFromIframe } from '@/lib/utils/getClientFromURL'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { queryRelevantKnowledge } from '@/lib/vector/queryVectors'
 
 type Message = {
@@ -171,16 +172,17 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const clientId = getClientIdFromIframe()
+  // eslint-disable-next-line prefer-const
   let personalizedContext = ''
 
-  if (clientId) {
-    try {
-      const chunks = await queryRelevantKnowledge(query, clientId)
-      personalizedContext = chunks.map((c: { content: string }) => c.content).join('\n\n')
-    } catch (err) {
-      console.error('❌ Embedding/vector search failed:', err)
-    }
-  }
+  // if (clientId) {
+  //   try {
+  //     const chunks = await queryRelevantKnowledge(query, clientId)
+  //     personalizedContext = chunks.map((c: { content: string }) => c.content).join('\n\n')
+  //   } catch (err) {
+  //     console.error('❌ Embedding/vector search failed:', err)
+  //   }
+  // }
 
   const finalPrompt = personalizedContext
     ? `Use the following client-specific context:\n\n${personalizedContext}\n\nUser: ${query}`
