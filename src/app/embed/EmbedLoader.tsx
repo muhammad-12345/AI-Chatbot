@@ -14,7 +14,7 @@ export default function EmbedLoader() {
   }, [searchParams])
 
   return (
-    <div className="w-[350px] h-[500px] border rounded shadow-lg overflow-hidden">
+    <div className="w-full h-full border rounded shadow-lg overflow-hidden">
       <ChatBox client={client} compact />
     </div>
   )
