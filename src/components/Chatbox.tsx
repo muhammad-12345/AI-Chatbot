@@ -54,7 +54,7 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
     <div className={compact ? 'w-[350px] h-[500px] shadow-lg rounded-md overflow-hidden border border-gray-300' : 'w-full h-screen'}>
       <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-screen'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
         <div className="flex flex-col h-screen w-full bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900">
-          <div className={`flex-1 overflow-y-auto px-4 py-6 ${isEmpty ? 'flex items-center justify-center' : ''}`}>
+          <div className={`flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent ${isEmpty ? 'flex items-center justify-center' : ''}`}>
             <div className="w-full max-w-2xl mx-auto">
               {isEmpty ? (
                 <div className="flex flex-col items-center justify-center w-full space-y-6 text-center">
