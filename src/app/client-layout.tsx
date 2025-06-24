@@ -15,7 +15,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <ContextProvider>
       <div
-        className="w-[370px] h-[600px] rounded-xl shadow-xl border border-gray-300 overflow-hidden flex flex-col bg-white dark:bg-[#1a1a1a]"
+        className="w-full h-full rounded-xl shadow-xl border border-gray-300 overflow-hidden flex flex-col bg-white dark:bg-[#1a1a1a]"
         style={{
           maxWidth: '100%',
           maxHeight: '100%',
