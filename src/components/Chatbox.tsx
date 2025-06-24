@@ -187,7 +187,10 @@ function InputBar({
         className="flex-1 bg-transparent outline-none text-gray-800 dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500"
       />
       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-        <button title="Voice input" onClick={startListening}>
+        <button title="Voice input" onClick={() => {
+          console.log('🎤 Mic clicked')
+          startListening()
+        }}>
           <Mic size={18} className={listening ? 'text-green-500' : ''} />
         </button>
         {listening && (
