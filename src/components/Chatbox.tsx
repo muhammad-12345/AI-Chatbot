@@ -53,8 +53,8 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
 
   return (
     // <div className={compact ? 'w-full h-full shadow-lg rounded-md overflow-hidden border border-gray-300' : 'w-full h-screen'}>
-      <div className="w-full h-full">
-      <div className={`flex flex-col w-full h-full ${compact ? 'h-full' : 'h-full'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
+      <div className="w-full h-full min-h-full">
+      <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-full'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
         <div className="flex flex-col h-full w-full bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900">
           {compact && (
             <div className="flex items-center gap-3 px-4 pt-4">
