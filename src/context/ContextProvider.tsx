@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { saveMessage } from '@/lib/supabase/chatService'
 import { getChatHistory, getAllChats } from '@/lib/supabase/chatService'
 import { getClientIdFromIframe } from '@/lib/utils/getClientFromURL'
-import { queryRelevantKnowledge } from '@/lib/vector/queryVectors' 
+import { queryRelevantKnowledge } from '@/lib/vector/queryVectors'
 
 type Message = {
   from: 'user' | 'ai'
@@ -54,8 +54,18 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   const [chatHistory, setChatHistory] = useState<Message[]>([])
   const [isFirstPrompt, setIsFirstPrompt] = useState(true) // ✅ NEW STATE
   const stopRequestedRef = useRef(false)
+
   const [chatId, setChatId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const isEmbedded = urlParams.has('client')
+
+      if (isEmbedded) {
+        // Always generate a new chatId in embedded mode (i.e., iframe)
+        return uuidv4()
+      }
+
+      // For standalone, use persistent chatId
       const stored = localStorage.getItem('chatId')
       return stored || uuidv4()
     }
@@ -131,6 +141,12 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     }
 
     testConnection()
+    const urlParams = new URLSearchParams(window.location.search)
+    const isEmbedded = urlParams.has('client')
+
+    if (!isEmbedded && chatId) {
+      localStorage.setItem('chatId', chatId)
+    }
 
     if (chatId) {
       localStorage.setItem('chatId', chatId) // ✅ Ensures it's always saved
@@ -153,14 +169,14 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     const clientId = getClientIdFromIframe() // ✅ Get client ID from URL
     let personalizedContext = ''
 
-     if (clientId) {
-    const chunks = await queryRelevantKnowledge(query, clientId) // ✅ 2. Search Supabase vector store
-    personalizedContext = chunks.map((c: { content: string }) => c.content).join('\n\n')
-  }
+    if (clientId) {
+      const chunks = await queryRelevantKnowledge(query, clientId) // ✅ 2. Search Supabase vector store
+      personalizedContext = chunks.map((c: { content: string }) => c.content).join('\n\n')
+    }
 
-  const finalPrompt = personalizedContext
-    ? `Use the following client-specific context:\n\n${personalizedContext}\n\nUser: ${query}`
-    : query
+    const finalPrompt = personalizedContext
+      ? `Use the following client-specific context:\n\n${personalizedContext}\n\nUser: ${query}`
+      : query
 
     // ✅ Only add new prompt to sidebar if it's not a recall AND is first in chat
     if (!prompt && isFirstPrompt && !isRecall) {
@@ -192,7 +208,7 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     const formattedResponse = newResponse.split('*').join('</br>')
 
     const promptHtml = `<div class="bg-[#343541] text-white font-semibold px-4 py-3 rounded-lg text-sm text-right max-w-xl ml-auto">${query}</div>`
-const responseStart = `<div class="text-white my-4 leading-relaxed">`
+    const responseStart = `<div class="text-white my-4 leading-relaxed">`
     const responseEnd = `</div>`
 
     if (!showTyping) {
@@ -222,7 +238,7 @@ const responseStart = `<div class="text-white my-4 leading-relaxed">`
 
     setInput('')
 
-    
+
   }
 
   const value: ContextType = {
