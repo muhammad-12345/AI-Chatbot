@@ -7,8 +7,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { saveMessage } from '@/lib/supabase/chatService'
 import { getChatHistory, getAllChats } from '@/lib/supabase/chatService'
 import { getClientIdFromIframe } from '@/lib/utils/getClientFromURL'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { queryRelevantKnowledge } from '@/lib/vector/queryVectors'
 
 type Message = {
   from: 'user' | 'ai'
@@ -156,100 +154,88 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   }, [chatId])
 
   const onSent = async (
-  prompt?: string,
-  showTyping = true,
-  setTypingIntervalId?: (id: NodeJS.Timeout | null) => void,
-  isRecall = false
-) => {
-  stopRequestedRef.current = false
-  setLoading(showTyping)
-  setShowResult(true)
+    prompt?: string,
+    showTyping = true,
+    setTypingIntervalId?: (id: NodeJS.Timeout | null) => void,
+    isRecall = false
+  ) => {
+    stopRequestedRef.current = false
+    setLoading(showTyping)
+    setShowResult(true)
 
-  const query = prompt ?? input
-  if (!query?.trim()) {
-    setLoading(false)
-    return
-  }
-
-  const clientId = getClientIdFromIframe()
-  // eslint-disable-next-line prefer-const
-  let personalizedContext = ''
-
-  // if (clientId) {
-  //   try {
-  //     const chunks = await queryRelevantKnowledge(query, clientId)
-  //     personalizedContext = chunks.map((c: { content: string }) => c.content).join('\n\n')
-  //   } catch (err) {
-  //     console.error('❌ Embedding/vector search failed:', err)
-  //   }
-  // }
-
-  const finalPrompt = personalizedContext
-    ? `Use the following client-specific context:\n\n${personalizedContext}\n\nUser: ${query}`
-    : query
-
-  console.log('📨 Sending prompt...', { query, chatId, clientId })
-  console.log('🧠 Personalized context:', personalizedContext)
-
-  if (!prompt && isFirstPrompt && !isRecall) {
-    setChatList((prev) => [...prev, { id: chatId, title: query.slice(0, 30) }])
-    setIsFirstPrompt(false)
-  }
-
-  setRecentPrompt(query)
-  const fullHistory: Message[] = [...chatHistory, { from: 'user', text: finalPrompt }]
-  let response = ''
-
-  try {
-    response = await runChat(fullHistory)
-  } catch (err) {
-    console.error('❌ Gemini runChat failed:', err)
-    setLoading(false)
-    return
-  }
-
-  setChatHistory((prev) => [...prev, { from: 'user', text: query }, { from: 'ai', text: response }])
-  await saveMessage(chatId, 'user', query)
-  await saveMessage(chatId, 'ai', response)
-
-  const responseArray = response.split('**')
-  let newResponse = ''
-  for (let i = 0; i < responseArray.length; i++) {
-    newResponse += i % 2 === 1 ? `<b>${responseArray[i]}</b>` : responseArray[i]
-  }
-  const formattedResponse = newResponse.split('*').join('</br>')
-
-  const promptHtml = `<div class="bg-[#343541] text-white font-semibold px-4 py-3 rounded-lg text-sm text-right max-w-xl ml-auto">${query}</div>`
-  const responseStart = `<div class="text-white my-4 leading-relaxed">`
-  const responseEnd = `</div>`
-
-  if (!showTyping) {
-    setResultData((prev) => prev + promptHtml + responseStart + formattedResponse + responseEnd)
-    setLoading(false)
-    setInput('')
-    return
-  }
-
-  setResultData((prev) => prev + promptHtml + responseStart)
-
-  const words = formattedResponse.split(' ')
-  let i = 0
-
-  const intervalId = setInterval(() => {
-    if (stopRequestedRef.current || i >= words.length) {
-      clearInterval(intervalId)
-      setResultData((prev) => prev + responseEnd)
+    const query = prompt ?? input
+    if (!query?.trim()) {
       setLoading(false)
       return
     }
-    setResultData((prev) => prev + words[i] + ' ')
-    i++
-  }, 75)
 
-  if (setTypingIntervalId) setTypingIntervalId(intervalId)
+    const clientId = getClientIdFromIframe()
 
-  setInput('')
-}
+    console.log('📨 Sending prompt...', { query, chatId, clientId })
+
+    const finalPrompt = query.trim()
+
+    if (!prompt && isFirstPrompt && !isRecall) {
+      setChatList((prev) => [...prev, { id: chatId, title: query.slice(0, 30) }])
+      setIsFirstPrompt(false)
+    }
+
+    setRecentPrompt(query)
+    const fullHistory: Message[] = [...chatHistory, { from: 'user', text: finalPrompt }]
+    let response = ''
+
+    try {
+      const safeClientId = clientId ?? undefined
+      response = await runChat(fullHistory, safeClientId)
+
+    } catch (err) {
+      console.error('❌ Gemini runChat failed:', err)
+      setLoading(false)
+      return
+    }
+
+    setChatHistory((prev) => [...prev, { from: 'user', text: query }, { from: 'ai', text: response }])
+    await saveMessage(chatId, 'user', query)
+    await saveMessage(chatId, 'ai', response)
+
+    const responseArray = response.split('**')
+    let newResponse = ''
+    for (let i = 0; i < responseArray.length; i++) {
+      newResponse += i % 2 === 1 ? `<b>${responseArray[i]}</b>` : responseArray[i]
+    }
+    const formattedResponse = newResponse.split('*').join('</br>')
+
+    const promptHtml = `<div class="bg-[#343541] text-white font-semibold px-4 py-3 rounded-lg text-sm text-right max-w-xl ml-auto">${query}</div>`
+    const responseStart = `<div class="text-white my-4 leading-relaxed">`
+    const responseEnd = `</div>`
+
+    if (!showTyping) {
+      setResultData((prev) => prev + promptHtml + responseStart + formattedResponse + responseEnd)
+      setLoading(false)
+      setInput('')
+      return
+    }
+
+    setResultData((prev) => prev + promptHtml + responseStart)
+
+    const words = formattedResponse.split(' ')
+    let i = 0
+
+    const intervalId = setInterval(() => {
+      if (stopRequestedRef.current || i >= words.length) {
+        clearInterval(intervalId)
+        setResultData((prev) => prev + responseEnd)
+        setLoading(false)
+        return
+      }
+      setResultData((prev) => prev + words[i] + ' ')
+      i++
+    }, 75)
+
+    if (setTypingIntervalId) setTypingIntervalId(intervalId)
+
+    setInput('')
+  }
 
 
   const value: ContextType = {

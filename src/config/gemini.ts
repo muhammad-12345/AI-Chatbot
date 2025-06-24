@@ -3,12 +3,12 @@ type Message = {
   text: string
 }
 
-const runChat = async (messages: Message[]): Promise<string> => {
-  try {
-    const res = await fetch('/api/chat', {
+const runChat = async (messages: Message[], clientId?: string): Promise<string> => {
+ try {
+  const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, clientId }),
     })
 
     const data = await res.json()
