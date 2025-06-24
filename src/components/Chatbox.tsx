@@ -59,10 +59,10 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
           {compact && (
             <div className="flex items-center gap-3 px-4 pt-4">
               <Image src="/logo.png" alt="Logo" width={40} height={40} />
-              <div>
+              {/* <div>
                 <h2 className="text-md font-semibold text-white">Hello there.</h2>
                 <p className="text-sm text-gray-300">How can we help?</p>
-              </div>
+              </div> */}
             </div>
           )}
 
@@ -77,8 +77,13 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
               {isEmpty ? (
                 compact ? (
                   <div className="flex flex-1 flex-col items-center justify-center text-center px-4">
-                    <h2 className="text-xl font-semibold text-white">Hello there.</h2>
-                    <p className="text-sm text-gray-300">How can we help?</p>
+                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-400">
+                      Hello there.
+                    </h2>
+                    <p className="text-xs sm:text-sm md:text-base  text-white">
+                      How can we help?
+                    </p>
+
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center w-full space-y-6 text-center">
@@ -161,9 +166,9 @@ function InputBar({
       ? 'bg-white dark:bg-[#2c2c2c] px-6 py-4 border border-gray-300 dark:border-gray-700 rounded-3xl'
       : ''}`}>
       {!compact && (
-      <button title="Attach file" className="text-gray-500 dark:text-gray-400 hover:text-blue-500">
-        <Plus size={18} />
-      </button>
+        <button title="Attach file" className="text-gray-500 dark:text-gray-400 hover:text-blue-500">
+          <Plus size={18} />
+        </button>
       )}
       <input
         value={input}
