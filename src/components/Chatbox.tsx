@@ -56,10 +56,12 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
       <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-screen'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
         <div className="flex flex-col h-screen w-full bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900">
           {compact && (
-            <div className="flex flex-col items-center justify-center text-center px-4 pt-6">
-              <Image src="/logo.png" alt="Logo" width={60} height={60} className="mb-2" />
-              <h2 className="text-lg font-semibold text-gray">Hello there.</h2>
-              <p className="text-sm text-gray-300 mt-1">How can we help?</p>
+            <div className="flex items-center gap-3 px-4 pt-4">
+              <Image src="/logo.png" alt="Logo" width={40} height={40} />
+              <div>
+                <h2 className="text-md font-semibold text-white">Hello there.</h2>
+                <p className="text-sm text-gray-300">How can we help?</p>
+              </div>
             </div>
           )}
 
@@ -69,23 +71,27 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
               <p className="text-sm text-gray-300">How can we help?</p>
             </div>
           )} */}
-          <div className={`flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent ${isEmpty ? 'flex items-center justify-center' : ''}`}>
+          <div className={`flex-1 px-4 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent ${isEmpty ? 'justify-center items-center flex' : ''}`}>
             <div className="w-full max-w-2xl mx-auto">
               {isEmpty ? (
-                !compact ? (
-                  <div className="flex flex-col items-center justify-center w-full space-y-6 text-center">
+                <div className="flex flex-col items-center justify-center w-full space-y-6 text-center">
+                  {!compact ? (
                     <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-100">
                       What are you working on?
                     </h2>
-                    <InputBar
-                      showRounded
-                      handleStop={handleStop}
-                      isStopped={isStopped}
-                      setTypingIntervalId={setTypingIntervalId}
-                      handleSend={handleSend}
-                    />
-                  </div>
-                ) : null
+                  ) : (
+                    <>
+                      <div className="mt-4" /> {/* spacer if needed */}
+                    </>
+                  )}
+                  <InputBar
+                    showRounded
+                    handleStop={handleStop}
+                    isStopped={isStopped}
+                    setTypingIntervalId={setTypingIntervalId}
+                    handleSend={handleSend}
+                  />
+                </div>
               ) : (
 
                 <div className="flex flex-col space-y-4">
