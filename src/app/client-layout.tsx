@@ -17,9 +17,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <div
         className="w-full rounded-xl shadow-xl border border-gray-300 overflow-hidden flex flex-col bg-white dark:bg-[#1a1a1a]"
         style={{
-          maxWidth: '100%',
-          maxHeight: '100%',
+          width: '100%',
+          height: '100%',
         }}
+
       >
         {children}
       </div>
