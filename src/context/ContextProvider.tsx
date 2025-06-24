@@ -155,91 +155,100 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
   }, [chatId])
 
   const onSent = async (
-    prompt?: string,
-    showTyping = true,
-    setTypingIntervalId?: (id: NodeJS.Timeout | null) => void,
-    isRecall = false
-  ) => {
-    stopRequestedRef.current = false
-    setLoading(showTyping)
-    setShowResult(true)
+  prompt?: string,
+  showTyping = true,
+  setTypingIntervalId?: (id: NodeJS.Timeout | null) => void,
+  isRecall = false
+) => {
+  stopRequestedRef.current = false
+  setLoading(showTyping)
+  setShowResult(true)
 
-    const query = prompt ?? input
+  const query = prompt ?? input
+  if (!query?.trim()) {
+    setLoading(false)
+    return
+  }
 
-    const clientId = getClientIdFromIframe() // ✅ Get client ID from URL
-    let personalizedContext = ''
+  const clientId = getClientIdFromIframe()
+  let personalizedContext = ''
 
-    if (clientId) {
-      const chunks = await queryRelevantKnowledge(query, clientId) // ✅ 2. Search Supabase vector store
+  if (clientId) {
+    try {
+      const chunks = await queryRelevantKnowledge(query, clientId)
       personalizedContext = chunks.map((c: { content: string }) => c.content).join('\n\n')
+    } catch (err) {
+      console.error('❌ Embedding/vector search failed:', err)
     }
+  }
 
-    const finalPrompt = personalizedContext
-      ? `Use the following client-specific context:\n\n${personalizedContext}\n\nUser: ${query}`
-      : query
+  const finalPrompt = personalizedContext
+    ? `Use the following client-specific context:\n\n${personalizedContext}\n\nUser: ${query}`
+    : query
 
-    // ✅ Only add new prompt to sidebar if it's not a recall AND is first in chat
-    if (!prompt && isFirstPrompt && !isRecall) {
-      // setPreviousPrompt((prev) => [...prev, input])
-      setChatList((prev) => [...prev, { id: chatId, title: query.slice(0, 30) }])
-      setIsFirstPrompt(false)
-    }
+  console.log('📨 Sending prompt...', { query, chatId, clientId })
+  console.log('🧠 Personalized context:', personalizedContext)
 
-    setRecentPrompt(query)
+  if (!prompt && isFirstPrompt && !isRecall) {
+    setChatList((prev) => [...prev, { id: chatId, title: query.slice(0, 30) }])
+    setIsFirstPrompt(false)
+  }
 
-    const fullHistory: Message[] = [...chatHistory, { from: 'user', text: finalPrompt }]
-    const response = await runChat(fullHistory)
+  setRecentPrompt(query)
+  const fullHistory: Message[] = [...chatHistory, { from: 'user', text: finalPrompt }]
+  let response = ''
 
-    setChatHistory((prev) => [...prev, { from: 'user', text: query }, { from: 'ai', text: response }])
+  try {
+    response = await runChat(fullHistory)
+  } catch (err) {
+    console.error('❌ Gemini runChat failed:', err)
+    setLoading(false)
+    return
+  }
 
-    await saveMessage(chatId, 'user', query)
-    await saveMessage(chatId, 'ai', response)
+  setChatHistory((prev) => [...prev, { from: 'user', text: query }, { from: 'ai', text: response }])
+  await saveMessage(chatId, 'user', query)
+  await saveMessage(chatId, 'ai', response)
 
-    const responseArray = response.split('**')
-    let newResponse = ''
-    for (let i = 0; i < responseArray.length; i++) {
-      if (i === 0 || i % 2 !== 1) {
-        newResponse += responseArray[i]
-      } else {
-        newResponse += `<b>${responseArray[i]}</b>`
-      }
-    }
+  const responseArray = response.split('**')
+  let newResponse = ''
+  for (let i = 0; i < responseArray.length; i++) {
+    newResponse += i % 2 === 1 ? `<b>${responseArray[i]}</b>` : responseArray[i]
+  }
+  const formattedResponse = newResponse.split('*').join('</br>')
 
-    const formattedResponse = newResponse.split('*').join('</br>')
+  const promptHtml = `<div class="bg-[#343541] text-white font-semibold px-4 py-3 rounded-lg text-sm text-right max-w-xl ml-auto">${query}</div>`
+  const responseStart = `<div class="text-white my-4 leading-relaxed">`
+  const responseEnd = `</div>`
 
-    const promptHtml = `<div class="bg-[#343541] text-white font-semibold px-4 py-3 rounded-lg text-sm text-right max-w-xl ml-auto">${query}</div>`
-    const responseStart = `<div class="text-white my-4 leading-relaxed">`
-    const responseEnd = `</div>`
+  if (!showTyping) {
+    setResultData((prev) => prev + promptHtml + responseStart + formattedResponse + responseEnd)
+    setLoading(false)
+    setInput('')
+    return
+  }
 
-    if (!showTyping) {
-      setResultData((prev) => prev + promptHtml + responseStart + formattedResponse + responseEnd)
+  setResultData((prev) => prev + promptHtml + responseStart)
+
+  const words = formattedResponse.split(' ')
+  let i = 0
+
+  const intervalId = setInterval(() => {
+    if (stopRequestedRef.current || i >= words.length) {
+      clearInterval(intervalId)
+      setResultData((prev) => prev + responseEnd)
       setLoading(false)
-      setInput('')
       return
     }
+    setResultData((prev) => prev + words[i] + ' ')
+    i++
+  }, 75)
 
-    setResultData((prev) => prev + promptHtml + responseStart)
+  if (setTypingIntervalId) setTypingIntervalId(intervalId)
 
-    const words = formattedResponse.split(' ')
-    let i = 0
+  setInput('')
+}
 
-    const intervalId = setInterval(() => {
-      if (stopRequestedRef.current || i >= words.length) {
-        clearInterval(intervalId)
-        setResultData((prev) => prev + responseEnd)
-        setLoading(false)
-        return
-      }
-      setResultData((prev) => prev + words[i] + ' ')
-      i++
-    }, 75)
-
-    if (setTypingIntervalId) setTypingIntervalId(intervalId)
-
-    setInput('')
-
-
-  }
 
   const value: ContextType = {
     input,
