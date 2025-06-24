@@ -52,9 +52,10 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
   }
 
   return (
-    <div className={compact ? 'w-full h-full shadow-lg rounded-md overflow-hidden border border-gray-300' : 'w-full h-screen'}>
-      <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-screen'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
-        <div className="flex flex-col h-screen w-full bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900">
+    // <div className={compact ? 'w-full h-full shadow-lg rounded-md overflow-hidden border border-gray-300' : 'w-full h-screen'}>
+      <div className="w-full h-full">
+      <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-full'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
+        <div className="flex flex-col h-full w-full bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900">
           {compact && (
             <div className="flex items-center gap-3 px-4 pt-4">
               <Image src="/logo.png" alt="Logo" width={40} height={40} />
@@ -71,7 +72,7 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
               <p className="text-sm text-gray-300">How can we help?</p>
             </div>
           )} */}
-          <div className={`flex-1 px-4 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent ${isEmpty ? 'justify-center items-center flex' : ''}`}>
+          <div className={`flex-1 px-4 py-6 overflow-y-auto max-h-full scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent ${isEmpty ? 'justify-center items-center flex' : ''}`}>
             <div className="w-full max-w-2xl mx-auto">
               {isEmpty ? (
                 <div className="flex flex-col items-center justify-center w-full space-y-6 text-center">
