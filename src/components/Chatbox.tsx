@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Plus, Mic, Send, Square } from 'lucide-react'
 import { useChatContext } from '@/context/ContextProvider'
+import Image from 'next/image'
 
 interface ChatBoxProps {
   client?: string | null
@@ -51,9 +52,25 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
   }
 
   return (
-    <div className={compact ? 'w-[350px] h-[500px] shadow-lg rounded-md overflow-hidden border border-gray-300' : 'w-full h-screen'}>
+    <div className={compact ? 'w-[400px] h-[600px] shadow-lg rounded-md overflow-hidden border border-gray-300' : 'w-full h-screen'}>
       <div className={`flex flex-col w-full ${compact ? 'h-full' : 'h-screen'}  bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900`}>
         <div className="flex flex-col h-screen w-full bg-gradient-to-br from-black via-[#1a1a2e] to-indigo-900">
+          {compact && (
+            <div className="flex items-center gap-2 px-4 pt-4">
+              <Image
+                src="/logo.png"
+                alt="Promptly Logo"
+                className="h-6 w-auto"
+              />
+            </div>
+          )}
+
+          {compact && (
+            <div className="px-4 mt-2 mb-4">
+              <h2 className="text-lg font-semibold text-gray">Hello there.</h2>
+              <p className="text-sm text-gray-300">How can we help?</p>
+            </div>
+          )}
           <div className={`flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent ${isEmpty ? 'flex items-center justify-center' : ''}`}>
             <div className="w-full max-w-2xl mx-auto">
               {isEmpty ? (
