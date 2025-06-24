@@ -52,7 +52,8 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
     stopListening,
   } = useSpeechRecognition((finalText: string) => {
     setInput(finalText)
-    handleSend()
+    onSent(finalText, true, setTypingIntervalId) // ✅ Use finalText directly
+    stopListening()
   })
 
 
