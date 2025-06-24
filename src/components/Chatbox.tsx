@@ -48,10 +48,13 @@ export default function ChatBox({ client, compact }: ChatBoxProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     supported,
     startListening,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    stopListening,
   } = useSpeechRecognition((finalText: string) => {
     setInput(finalText)
     handleSend()
   })
+
 
   if (!hasMounted) return null
 

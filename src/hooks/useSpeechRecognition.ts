@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 // ✅ Fix for missing global types
 declare global {
@@ -25,6 +25,8 @@ export function useSpeechRecognition(onTranscriptReady?: (text: string) => void)
     const [transcript, setTranscript] = useState('')
     const [listening, setListening] = useState(false)
     const [supported, setSupported] = useState(false)
+    const recognitionRef = useRef<any>(null)
+
 
     useEffect(() => {
         const isSupported = typeof window !== 'undefined' &&
@@ -55,17 +57,25 @@ export function useSpeechRecognition(onTranscriptReady?: (text: string) => void)
                 setTranscript(finalTranscript)
                 if (onTranscriptReady) {
                     onTranscriptReady(finalTranscript)
+                    recognition.stop() // Stop after getting final result
                 }
             }
 
             recognition.onend = () => setListening(false)
-            recognition.onerror = () => setListening(false)
+            recognition.onerror = () => {
+                recognition.stop()
+                setListening(false)
+            }
 
             recognition.start()
         } catch (err) {
             console.error('Microphone access denied:', err)
         }
     }
+    const stopListening = () => {
+    recognitionRef.current?.stop()
+    setListening(false)
+  }
 
-    return { transcript, listening, supported, startListening }
+    return { transcript, listening, supported, startListening, stopListening }
 }
