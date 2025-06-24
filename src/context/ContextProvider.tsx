@@ -6,6 +6,8 @@ import runChat from '../config/gemini'
 import { v4 as uuidv4 } from 'uuid'
 import { saveMessage } from '@/lib/supabase/chatService'
 import { getChatHistory, getAllChats } from '@/lib/supabase/chatService'
+import { getClientIdFromIframe } from '@/lib/utils/getClientFromURL'
+import { queryRelevantKnowledge } from '@/lib/vector/queryVectors' 
 
 type Message = {
   from: 'user' | 'ai'
@@ -148,6 +150,18 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
 
     const query = prompt ?? input
 
+    const clientId = getClientIdFromIframe() // ✅ Get client ID from URL
+    let personalizedContext = ''
+
+     if (clientId) {
+    const chunks = await queryRelevantKnowledge(query, clientId) // ✅ 2. Search Supabase vector store
+    personalizedContext = chunks.map((c: { content: string }) => c.content).join('\n\n')
+  }
+
+  const finalPrompt = personalizedContext
+    ? `Use the following client-specific context:\n\n${personalizedContext}\n\nUser: ${query}`
+    : query
+
     // ✅ Only add new prompt to sidebar if it's not a recall AND is first in chat
     if (!prompt && isFirstPrompt && !isRecall) {
       // setPreviousPrompt((prev) => [...prev, input])
@@ -157,7 +171,7 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
 
     setRecentPrompt(query)
 
-    const fullHistory: Message[] = [...chatHistory, { from: 'user', text: query }]
+    const fullHistory: Message[] = [...chatHistory, { from: 'user', text: finalPrompt }]
     const response = await runChat(fullHistory)
 
     setChatHistory((prev) => [...prev, { from: 'user', text: query }, { from: 'ai', text: response }])
@@ -207,6 +221,8 @@ const responseStart = `<div class="text-white my-4 leading-relaxed">`
     if (setTypingIntervalId) setTypingIntervalId(intervalId)
 
     setInput('')
+
+    
   }
 
   const value: ContextType = {
