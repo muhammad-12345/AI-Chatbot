@@ -5,6 +5,8 @@ type Message = {
 
 const runChat = async (messages: Message[], clientId?: string): Promise<string> => {
  try {
+    console.log('[runChat] clientId sent to backend:', clientId)
+
   const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -13,6 +15,8 @@ const runChat = async (messages: Message[], clientId?: string): Promise<string> 
 
     const data = await res.json()
     return data.text || 'No response'
+
+
   } catch (err) {
     console.error('[runChat Error]', err)
     return '⚠️ Failed to get response from Gemini.'
