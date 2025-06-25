@@ -1,3 +1,5 @@
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
 import { OpenAI } from 'openai'
 
 const openai = new OpenAI({
@@ -15,7 +17,7 @@ Extracted:
 `
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo-1106',
+    model: 'gpt-4o-mini',
     temperature: 0.3,
     messages: [
       { role: 'system', content: 'You are an information extractor.' },
