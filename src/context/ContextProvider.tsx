@@ -235,6 +235,9 @@ const ContextProvider = ({ children }: { children: ReactNode }) => {
     if (setTypingIntervalId) setTypingIntervalId(intervalId)
 
     setInput('')
+
+    console.log('➡️ Final Prompt:', finalPrompt);
+
   }
 
 

@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function queryRelevantKnowledge(clientId: string, query: string) {
@@ -16,6 +20,10 @@ export async function queryRelevantKnowledge(clientId: string, query: string) {
     match_count: 3
   })
 
-  if (error) throw error
+  if (error) {
+    console.error('❌ Supabase RPC error:', error)
+    return []
+  }
+
   return data
 }
